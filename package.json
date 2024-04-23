@@ -58,7 +58,8 @@
           ".eslintrc"
         ],
         "options": {
-          "parser": "json"
+          "parser": "json",
+          "endOfLine": "crlf"
         }
       }
     ]
