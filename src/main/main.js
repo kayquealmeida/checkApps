@@ -15,6 +15,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 const { exec } = require('child_process');
 import { resolveHtmlPath } from './util';
+const csvFilePath = 'c:/checkapps/apps.csv'; // Path to your CSV file
+const csv = require('csvtojson');
 
 class AppUpdater {
   constructor() {
@@ -105,122 +107,16 @@ const createWindow = async () => {
 
 };
 
-const softwareList = [
-  {
-    "software_name": "7-Zip x64",
-    "version": "19.00",
-    "approved": false,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "AcroReaderDC x86",
-    "version": "22.003.20314",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Citrix Workspace x86",
-    "version": "22.3.2000.2105",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Nexus PersonalDesktopClient x64",
-    "version": "5.8.12",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Mozilla FirefoxESR x86",
-    "version": "115.9.0",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Oracle Java8Update381 x64",
-    "version": "8.0.3810.31",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Oracle Java8Update381 x86",
-    "version": "8.0.3810.31",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "SAP SAPGUI x64",
-    "version": "7700.1.12.1161",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "FireEye EndpointAgentHXVWdB x86",
-    "version": "35.31.25",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Tenable NessusAgentANCVWDB x64",
-    "version": "10.4.2.20158",
-    "approved": true,
-    "restrictedTo": "Anchieta"
-  },
-  {
-    "software_name": "Tenable NessusAgentCURVWDB x64",
-    "version": "10.4.2.20158",
-    "approved": true,
-    "restrictedTo": "Curitiba"
-  },
-  {
-    "software_name": "Tenable NessusAgentTBTVWDB x64",
-    "version": "10.4.2.20158",
-    "approved": true,
-    "restrictedTo": "Taubaté"
-  },
-  {
-    "software_name": "Cisco Anyconnect x86",
-    "version": "4.10.07062",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "Barco ClickShareExtensionPack x64",
-    "version": "1.2.0.6",
-    "approved": false,
-    "restrictedTo": "Laptop"
-  },
-  {
-    "software_name": "Flexera FlexNetInventoryAgentVWdoBrasil x86",
-    "version": "17.01.11",
-    "approved": true,
-    "restrictedTo": "Vw"
-  },
-  {
-    "software_name": "Flexera FlexNetInventoryAgentVWCO x86",
-    "version": "17.01.11",
-    "approved": true,
-    "restrictedTo": "Vwco"
-  },
-  {
-    "software_name": "ZSCALER ClientConnectorVWDB x64",
-    "version": "3.7.1.53",
-    "approved": false,
-    "restrictedTo": "Para todos os equipamento vw/audi/vwco"
-  },
-  {
-    "software_name": "CheckPoint MobileClientE8620VWAG x86",
-    "version": "98.61.3717",
-    "approved": true,
-    "restrictedTo": null
-  },
-  {
-    "software_name": "FlexNetInventoryAgentAUDIBRx86",
-    "version": "19.00.1046",
-    "approved": true,
-    "restrictedTo": "Audi"
-  }
-]
+let softwareList; // Define a variable to hold JSON data
+
+csv()
+    .fromFile(csvFilePath)
+    .then((jsonObj) => {
+        softwareList = jsonObj;
+    })
+    .catch((err) => {
+        console.error('Error:', err);
+    });
 
 function getInstalledApplications(restrictions) {
   return new Promise((resolve, reject) => {
