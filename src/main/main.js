@@ -13,6 +13,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
+const { exec } = require('child_process');
 import { resolveHtmlPath } from './util';
 
 class AppUpdater {
@@ -24,12 +25,6 @@ class AppUpdater {
 }
 
 let mainWindow;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -107,14 +102,181 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
+
 };
 
-/**
- * Add event listeners...
- */
+const softwareList = [
+  {
+    "software_name": "7-Zip x64",
+    "version": "19.00",
+    "approved": false,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "AcroReaderDC x86",
+    "version": "22.003.20314",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Citrix Workspace x86",
+    "version": "22.3.2000.2105",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Nexus PersonalDesktopClient x64",
+    "version": "5.8.12",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Mozilla FirefoxESR x86",
+    "version": "115.9.0",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Oracle Java8Update381 x64",
+    "version": "8.0.3810.31",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Oracle Java8Update381 x86",
+    "version": "8.0.3810.31",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "SAP SAPGUI x64",
+    "version": "7700.1.12.1161",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "FireEye EndpointAgentHXVWdB x86",
+    "version": "35.31.25",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Tenable NessusAgentANCVWDB x64",
+    "version": "10.4.2.20158",
+    "approved": true,
+    "restrictedTo": "Anchieta"
+  },
+  {
+    "software_name": "Tenable NessusAgentCURVWDB x64",
+    "version": "10.4.2.20158",
+    "approved": true,
+    "restrictedTo": "Curitiba"
+  },
+  {
+    "software_name": "Tenable NessusAgentTBTVWDB x64",
+    "version": "10.4.2.20158",
+    "approved": true,
+    "restrictedTo": "Taubaté"
+  },
+  {
+    "software_name": "Cisco Anyconnect x86",
+    "version": "4.10.07062",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "Barco ClickShareExtensionPack x64",
+    "version": "1.2.0.6",
+    "approved": false,
+    "restrictedTo": "Laptop"
+  },
+  {
+    "software_name": "Flexera FlexNetInventoryAgentVWdoBrasil x86",
+    "version": "17.01.11",
+    "approved": true,
+    "restrictedTo": "Vw"
+  },
+  {
+    "software_name": "Flexera FlexNetInventoryAgentVWCO x86",
+    "version": "17.01.11",
+    "approved": true,
+    "restrictedTo": "Vwco"
+  },
+  {
+    "software_name": "ZSCALER ClientConnectorVWDB x64",
+    "version": "3.7.1.53",
+    "approved": false,
+    "restrictedTo": "Para todos os equipamento vw/audi/vwco"
+  },
+  {
+    "software_name": "CheckPoint MobileClientE8620VWAG x86",
+    "version": "98.61.3717",
+    "approved": true,
+    "restrictedTo": null
+  },
+  {
+    "software_name": "FlexNetInventoryAgentAUDIBRx86",
+    "version": "19.00.1046",
+    "approved": true,
+    "restrictedTo": "Audi"
+  }
+]
+
+function getInstalledApplications(restrictions) {
+  return new Promise((resolve, reject) => {
+    exec('winget list', (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error executing command: ${error}`);
+        return;
+      }
+
+      if (stderr) {
+        reject(`Command stderr: ${stderr}`);
+        return;
+      }
+
+      const lines = stdout.trim().split('\n');
+      lines.splice(0, 5);
+
+      const packages = lines.map(line => {
+        const columns = line.trim().split(/\s{2,}/); // Split by multiple spaces
+        const name = columns[0];
+        const id = columns[1];
+        const version = columns[2];
+        const available = columns[3];
+        const origin = columns[4];
+        return { name, id, version, available, origin };
+      });
+
+      const providedApplications = softwareList.map(application => {
+        return {
+          ...application,
+          installed: packages.some(package => package.name === application.software_name && package.version === application.version)
+        };
+      });
+
+      if (restrictions && restrictions.length > 0) {
+        providedApplications = providedApplications.filter(application => restrictions.includes(application.restrictedTo));
+      }
+
+      resolve(providedApplications);
+    });
+  });
+}
+
+
+// restrictions: Array<restrictedTo>
+ipcMain.on('getInstalledApplications', (event, restrictions) => {
+  getInstalledApplications(restrictions)
+    .then(applications => {
+      event.reply('getInstalledApplicationsResponse', { applications });
+    })
+    .catch(error => {
+      event.reply('getInstalledApplicationsResponse', { error: error.message });
+    });
+});
+
+
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
