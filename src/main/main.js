@@ -72,6 +72,8 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
+      contextIsolation: false,
+      nodeIntegration: true,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -120,6 +122,7 @@ csv()
 
 function getInstalledApplications(restrictions) {
   return new Promise((resolve, reject) => {
+    console.log('Entrou na promise do getInstalledApplications')
     exec('winget list', (error, stdout, stderr) => {
       if (error) {
         reject(`Error executing command: ${error}`);
@@ -147,7 +150,7 @@ function getInstalledApplications(restrictions) {
       const providedApplications = softwareList.map(application => {
         return {
           ...application,
-          installed: packages.some(package => package.name === application.software_name && package.version === application.version)
+          installed: packages.some(pkge => pkge.name === application.software_name && pkge.version === application.version)
         };
       });
 
@@ -162,13 +165,15 @@ function getInstalledApplications(restrictions) {
 
 
 // restrictions: Array<restrictedTo>
-ipcMain.on('getInstalledApplications', (event, restrictions) => {
-  getInstalledApplications(restrictions)
+ipcMain.handle('getInstalledApplications', async (event, restrictions) => {
+  console.log('Restriction: ', restrictions)
+  return getInstalledApplications(restrictions)
     .then(applications => {
-      event.reply('getInstalledApplicationsResponse', { applications });
+      console.log('Aplications: ', applications)
+      return applications;
     })
     .catch(error => {
-      event.reply('getInstalledApplicationsResponse', { error: error.message });
+      return { error: error.message };
     });
 });
 

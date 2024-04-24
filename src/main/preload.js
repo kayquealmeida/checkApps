@@ -1,23 +1,10 @@
 /* eslint-disable no-unused-vars */
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, remote } = require("electron");
 
-const electronHandler = {
-  ipcRenderer: {
-    sendMessage(channel, ...args) {
-      ipcRenderer.send(channel, ...args);
-    },
-    on(channel, func) {
-      const subscription = (_event, ...args) => func(...args);
-      ipcRenderer.on(channel, subscription);
-
-      return () => {
-        ipcRenderer.removeListener(channel, subscription);
-      };
-    },
-    once(channel, func) {
-      ipcRenderer.once(channel, (_event, ...args) => func(...args));
-    },
-  },
-};
-
-contextBridge.exposeInMainWorld('electron', electronHandler);
+// As an example, here we use the exposeInMainWorld API to expose the IPC renderer
+// to the main window. They'll be accessible at "window.ipcRenderer".
+process.once("loaded", () => {
+  contextBridge.exposeInMainWorld("ipcRenderer", ipcRenderer);
+  contextBridge.exposeInMainWorld("remote",remote);
+  console.log('load completed')
+});

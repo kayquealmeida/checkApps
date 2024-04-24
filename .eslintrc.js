@@ -13,7 +13,14 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
-  },
+    prettier/prettier':
+      'error',  // alternativly change to 'warn' if you want only warning
+      {
+        endOfLine: 'auto',
+        // ... put other prettier rules here like "semi":flase,
+      },
+
+    },
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
