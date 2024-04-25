@@ -1,0 +1,83 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title h1 {
+  font-size: 1.5em;
+}
+
+.realoadButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin-left: 2rem;
+  border: 1px solid red;
+  padding: .2rem 1rem;
+  border-radius: 1rem;
+  transition: .5s;
+  -webkit-transition: .5s;
+}
+
+.realoadButton:hover {
+  background-color: red;
+  color: white;
+}
+
+.realoadButton img {
+  margin-left: .2rem;
+}
+
+.tableContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  border-collapse: collapse;
+}
+
+tr, th {
+  border-collapse: collapse;
+}
+
+th, tr, td {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #000;
+  padding: 0.5rem;
+}
+
+.btnSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.btnSection button {
+  display: block;
+  width: 150px;
+  height: 30px;
+  color: blue;
+  border: 2px solid blue;
+  background-color: transparent;
+  border-radius: 1rem;
+  cursor: pointer;
+  margin: 0.5rem;
+  transition: .4s;
+  -webkit-transition: .4s;
+}
+
+.btnSection button:hover {
+  background-color: blue;
+  color: white;
+}

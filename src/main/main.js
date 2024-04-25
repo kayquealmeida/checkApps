@@ -1,18 +1,7 @@
-/* eslint global-require: off, no-console: off, promise/always-return: off */
-
-/**
- * This module executes inside of electron's main process. You can start
- * electron renderer process from here and communicate with the other processes
- * through IPC.
- *
- * When running `npm run build` or `npm run build:main`, this file is compiled to
- * `./src/main.js` using webpack. This gives us some performance wins.
- */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, ipcRenderer } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import MenuBuilder from './menu';
 const { exec } = require('child_process');
 import { resolveHtmlPath } from './util';
 const csvFilePath = 'c:/checkapps/apps.csv'; // Path to your CSV file
@@ -40,23 +29,7 @@ if (isDebug) {
   require('electron-debug')();
 }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload,
-    )
-    .catch(console.log);
-};
-
 const createWindow = async () => {
-  if (isDebug) {
-    await installExtensions();
-  }
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -70,6 +43,8 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
+    hasShadow: true,
+    roundedCorners: true,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       contextIsolation: false,
@@ -97,32 +72,29 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
 
-  // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
-    shell.openExternal(edata.url);
-    return { action: 'deny' };
-  });
+  // // Open urls in the user's browser
+  // mainWindow.webContents.setWindowOpenHandler((edata) => {
+  //   shell.openExternal(edata.url);
+  //   return { action: 'deny' };
+  // });
 
 
 };
 
 let softwareList; // Define a variable to hold JSON data
 
-csv()
-    .fromFile(csvFilePath)
-    .then((jsonObj) => {
-        softwareList = jsonObj;
-    })
+ipcMain.handle('getAppList', (event, arg) => {
+  console.log('Arg: ', arg)
+    csv().fromFile(arg).then((jsonObj) => { softwareList = jsonObj;})
     .catch((err) => {
         console.error('Error:', err);
     });
+})
+
 
 function getInstalledApplications(restrictions) {
   return new Promise((resolve, reject) => {
-    console.log('Entrou na promise do getInstalledApplications')
     exec('winget list', (error, stdout, stderr) => {
       if (error) {
         reject(`Error executing command: ${error}`);
@@ -177,6 +149,9 @@ ipcMain.handle('getInstalledApplications', async (event, restrictions) => {
     });
 });
 
+ipcMain.on('reload-app', () => {
+  mainWindow.reload();
+})
 
 
 app.on('window-all-closed', () => {
