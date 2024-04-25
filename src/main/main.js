@@ -40,11 +40,12 @@ const createWindow = async () => {
   };
 
   mainWindow = new BrowserWindow({
-    show: false,
-    width: 1024,
-    height: 728,
-    hasShadow: true,
-    roundedCorners: true,
+    reponsive: true,
+      resizable: true,
+      useContentSize: true,
+      movable: true,
+      hasShadow: true,
+      roundedCorners: true,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       contextIsolation: false,
@@ -54,7 +55,7 @@ const createWindow = async () => {
         : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
   });
-
+  mainWindow.removeMenu();
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
@@ -166,6 +167,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
